@@ -1,2 +1,2 @@
-# stepToGlb
-Created with CodeSandbox
+# step-to-glb
+
