@@ -1,8 +1,10 @@
+import * as THREE from "three";
 import { Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { StepModel } from "./components/StepModel";
 import { CustomShaderMaterial, loadStep2, loadStep1 } from "./helpers";
 import { useControls } from "leva";
+import { SelectableStepModel } from "./components";
+import { useState } from "react";
 
 extend({ CustomShaderMaterial });
 
@@ -22,6 +24,10 @@ function App() {
     loadStep: { options: { loadStep2, loadStep1 } },
   });
 
+  const [selectedMeshList, setSelectedMeshList] = useState<THREE.Object3D[]>(
+    []
+  );
+
   return (
     <Canvas
       style={{ display: "flex", width: "100%", backgroundColor: "white" }}
@@ -30,12 +36,18 @@ function App() {
       <ambientLight intensity={0.5} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
       <pointLight position={[-10, -10, -10]} />
-      <StepModel
+      <SelectableStepModel
+        onSelect={(mesh) => setSelectedMeshList((p) => [...p, mesh])}
         position={[0, 0, 0]}
         scale={[0.1, 0.1, 0.1]}
         url={url}
         loadStep={loadStep}
       />
+      <group position={[0, -5, 0]} scale={[0.1, 0.1, 0.1]}>
+        {selectedMeshList.map((selectedMesh, index) => (
+          <primitive key={index} object={selectedMesh} />
+        ))}
+      </group>
     </Canvas>
   );
 }

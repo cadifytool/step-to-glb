@@ -1,18 +1,7 @@
 import * as THREE from "three";
-import occtimportjs, { ReadStepFileResult } from "occt-import-js";
+import { ReadStepFileResult } from "occt-import-js";
 
-export async function loadStep2(fileUrl: string) {
-  // init occt-import-js
-  const occt = await occtimportjs();
-
-  // download a step file
-  const response = await fetch(fileUrl);
-  const buffer = await response.arrayBuffer();
-
-  // read the imported step file
-  const fileBuffer = new Uint8Array(buffer);
-  const result = occt.ReadStepFile(fileBuffer, null);
-
+export function loadStep2(result: ReadStepFileResult) {
   // process the geometries of the result
   const group = new THREE.Group();
   for (const resultMesh of result.meshes) {
@@ -59,8 +48,10 @@ function BuildMesh(
       : 0xcccccc,
     specular: 0,
   });
+
   const materials = [defaultMaterial];
   const edges = showEdges ? new THREE.Group() : null;
+
   if (geometryMesh.brep_faces && geometryMesh.brep_faces.length > 0) {
     for (const faceColor of geometryMesh.brep_faces) {
       const color = faceColor.color
@@ -75,13 +66,14 @@ function BuildMesh(
         new THREE.MeshPhongMaterial({ color: color, specular: 0 })
       );
     }
+
     const triangleCount = geometryMesh.index.array.length / 3;
     let triangleIndex = 0;
     let faceColorGroupIndex = 0;
     while (triangleIndex < triangleCount) {
       const firstIndex = triangleIndex;
-      let lastIndex: number | null = null;
-      let materialIndex: number | null = null;
+      let lastIndex: number;
+      let materialIndex: number;
       if (faceColorGroupIndex >= geometryMesh.brep_faces.length) {
         lastIndex = triangleCount;
         materialIndex = 0;
@@ -97,12 +89,13 @@ function BuildMesh(
       }
       geometry.addGroup(
         firstIndex * 3,
-        (lastIndex! - firstIndex) * 3,
+        (lastIndex - firstIndex) * 3,
         materialIndex
       );
-      triangleIndex = lastIndex!;
+      triangleIndex = lastIndex;
 
       if (edges) {
+        console.log("call edges", firstIndex, lastIndex);
         const innerGeometry = new THREE.BufferGeometry();
         innerGeometry.setAttribute("position", geometry.attributes.position);
         if (geometryMesh.attributes.normal) {
@@ -110,7 +103,7 @@ function BuildMesh(
         }
         innerGeometry.setIndex(
           new THREE.BufferAttribute(
-            index.slice(firstIndex * 3, lastIndex! * 3),
+            index.slice(firstIndex * 3, lastIndex * 3),
             1
           )
         );

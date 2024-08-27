@@ -1,18 +1,9 @@
 import * as THREE from "three";
 import { shaderMaterial } from "@react-three/drei";
-import occtimportjs from "occt-import-js";
+import { ReadStepFileResult } from "occt-import-js";
 
-export async function loadStep1(fileUrl: string) {
+export function loadStep1(result: ReadStepFileResult) {
   const targetObject = new THREE.Object3D();
-
-  const occt = await occtimportjs();
-  const response = await fetch(fileUrl);
-  const buffer = await response.arrayBuffer();
-
-  const fileBuffer = new Uint8Array(buffer);
-  const result = occt.ReadStepFile(fileBuffer, null);
-
-  console.log(result.meshes);
 
   for (const resultMesh of result.meshes) {
     const geometry = new THREE.BufferGeometry();
